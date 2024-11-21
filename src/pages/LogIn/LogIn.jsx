@@ -24,8 +24,8 @@ import { ChefHat } from "lucide-react";
 const LogIn = () => {
     return (
         <div className="flex flex-col h-screen justify-center items-center bg-slate-100">
-            <div className="absolute top-0 left-0 m-4">
-                <ChefHat />
+            <div className="absolute flex flex-row items-center top-0 left-0 m-4">
+                <ChefHat className="text-3xl" />
                 <h1 className="font-bold text-4xl">DineSpot</h1>
             </div>
             <Card className="w-[350px]">
