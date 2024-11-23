@@ -33,9 +33,26 @@ const menuCategories = [
   ];
   
   const menuItems = [
-    { id: 1, category: 1, name: 'Nachos', description: 'Nachos con queso y jalapeños', price: 120, available: true },
-    { id: 5, category: 1, name: 'Guacamole', description: 'Guacamole fresco con totopos', price: 80, available: true }
-  ];
+    { id: 1, category: 1, name: 'Nachos', description: 'Nachos con queso y jalapeños', price: 120, available: true, image: '/api/placeholder/150/100' },
+    { id: 5, category: 1, name: 'Guacamole', description: 'Guacamole fresco con totopos', price: 80, available: true, image: '/api/placeholder/150/100' },
+    { id: 6, category: 1, name: 'Alitas', description: 'Alitas con salsa BBQ', price: 150, available: true, image: '/api/placeholder/150/100' },
+    { id: 7, category: 1, name: 'Tacos Dorados', description: 'Tacos rellenos de papa', price: 100, available: false, image: '/api/placeholder/150/100' },
+    
+    { id: 2, category: 2, name: 'Filete de Salmón', description: 'Salmón a la parrilla con verduras', price: 250, available: true, image: '/api/placeholder/150/100' },
+    { id: 8, category: 2, name: 'Pollo al Horno', description: 'Pollo marinado con hierbas', price: 180, available: true, image: '/api/placeholder/150/100' },
+    { id: 9, category: 2, name: 'Costillas BBQ', description: 'Costillas con salsa de la casa', price: 220, available: true, image: '/api/placeholder/150/100' },
+    { id: 10, category: 2, name: 'Ravioles', description: 'Ravioles rellenos de espinaca', price: 200, available: true, image: '/api/placeholder/150/100' },
+    
+    { id: 3, category: 3, name: 'Pastel de Chocolate', description: 'Pastel de chocolate con helado', price: 90, available: true, image: '/api/placeholder/150/100' },
+    { id: 11, category: 3, name: 'Tarta de Manzana', description: 'Tarta con manzanas caramelizadas', price: 85, available: true, image: '/api/placeholder/150/100' },
+    { id: 12, category: 3, name: 'Flan Casero', description: 'Flan de vainilla', price: 70, available: true, image: '/api/placeholder/150/100' },
+    { id: 13, category: 3, name: 'Cheesecake', description: 'Pay de queso con fresas', price: 100, available: false, image: '/api/placeholder/150/100' },
+    
+    { id: 4, category: 4, name: 'Mojito', description: 'Mojito clásico', price: 80, available: false, image: '/api/placeholder/150/100' },
+    { id: 14, category: 4, name: 'Limonada', description: 'Limonada natural', price: 50, available: true, image: '/api/placeholder/150/100' },
+    { id: 15, category: 4, name: 'Cerveza Artesanal', description: 'Cerveza de la región', price: 70, available: true, image: '/api/placeholder/150/100' },
+    { id: 16, category: 4, name: 'Café Americano', description: 'Café orgánico', price: 40, available: true, image: '/api/placeholder/150/100' }
+];
 
 const tables = [
   { id: 1, number: 1, status: 'available' },
