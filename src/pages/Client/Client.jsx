@@ -30,9 +30,9 @@ const menuItems = [
     { id: 14, category: 4, name: 'Limonada', description: 'Limonada natural', price: 50, available: true, image: '/api/placeholder/150/100' },
     { id: 15, category: 4, name: 'Cerveza Artesanal', description: 'Cerveza de la región', price: 70, available: true, image: '/api/placeholder/150/100' },
     { id: 16, category: 4, name: 'Café Americano', description: 'Café orgánico', price: 40, available: true, image: '/api/placeholder/150/100' }
-  ];
+];
   
-  const tables = [
+const tables = [
     { id: 1, number: 1, status: 'available' },
     { id: 2, number: 2, status: 'occupied' },
     { id: 3, number: 3, status: 'available' },
@@ -43,7 +43,7 @@ const menuItems = [
     { id: 8, number: 8, status: 'occupied' },
     { id: 9, number: 9, status: 'available' },
     { id: 10, number: 10, status: 'available' }
-  ];
+];
   
 
 const Client = () => {
