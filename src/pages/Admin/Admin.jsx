@@ -158,39 +158,58 @@ const MenuView = () => {
   );
 };
 
-const TablesView = () => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <h2 className="text-2xl font-bold">Gestión de Mesas</h2>
-      <Button>Agregar Mesa</Button>
-    </div>
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-      {tables.map(table => (
-        <Card key={table.id}>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h3 className="text-2xl font-bold mb-2">Mesa {table.number}</h3>
-              <div className={`inline-flex px-3 py-1 rounded-full text-sm ${
-                table.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-              }`}>
-                {table.status === 'available' ? 'Disponible' : 'Ocupada'}
-              </div>
-              <div className="mt-4 space-x-2">
-                <Button variant="outline" size="sm">Editar</Button>
-                <Button 
-                  variant={table.status === 'available' ? 'default' : 'destructive'} 
-                  size="sm"
+
+const TablesView = () => {
+  const [tableData, setTableData] = useState(tables);
+
+  const toggleTableStatus = (id) => {
+    setTableData((prev) =>
+      prev.map((table) =>
+        table.id === id
+          ? { ...table, status: table.status === "available" ? "occupied" : "available" }
+          : table
+      )
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Gestión de Mesas</h2>
+        <Button>Agregar Mesa</Button>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {tableData.map((table) => (
+          <Card key={table.id}>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold mb-2">Mesa {table.number}</h3>
+                <div
+                  className={`inline-flex px-3 py-1 rounded-full text-sm ${
+                    table.status === "available"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
                 >
-                  {table.status === 'available' ? 'Marcar Ocupada' : 'Liberar'}
-                </Button>
+                  {table.status === "available" ? "Disponible" : "Ocupada"}
+                </div>
+                <div className="mt-4 space-x-2">
+                  <Button
+                    variant={table.status === "available" ? "default" : "destructive"}
+                    size="sm"
+                    onClick={() => toggleTableStatus(table.id)}
+                  >
+                    {table.status === "available" ? "Marcar Ocupada" : "Liberar"}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const OrdersView = () => (
     <div className="space-y-6">
@@ -211,38 +230,123 @@ const OrdersView = () => (
     </div>
   );
   
-  const PaymentsView = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Métodos de Pago</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paymentMethods.map(method => (
-          <Card key={method.id}>
-            <CardHeader>
-              <CardTitle>{method.name}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
+  const PaymentsView = () => {
+    const [paymentData, setPaymentData] = useState(paymentMethods);
+    const [newPayment, setNewPayment] = useState("");
   
-  const SettingsView = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Gestión de Usuarios</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.map(user => (
-          <Card key={user.id}>
-            <CardHeader>
-              <CardTitle>{user.name}</CardTitle>
-              <CardDescription>Rol: {user.role}</CardDescription>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
-    </div>
-  );
+    const addPaymentMethod = () => {
+      if (newPayment) {
+        setPaymentData((prev) => [
+          ...prev,
+          { id: Date.now(), name: newPayment },
+        ]);
+        setNewPayment("");
+      }
+    };
   
- 
+    const removePaymentMethod = (id) => {
+      setPaymentData((prev) => prev.filter((method) => method.id !== id));
+    };
+  
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Métodos de Pago</h2>
+        <div className="flex space-x-4">
+          <input
+            value={newPayment}
+            onChange={(e) => setNewPayment(e.target.value)}
+            placeholder="Nuevo método de pago"
+            className="border p-2 flex-1"
+          />
+          <Button onClick={addPaymentMethod}>Agregar</Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {paymentData.map((method) => (
+            <Card key={method.id}>
+              <CardHeader>
+                <CardTitle>{method.name}</CardTitle>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => removePaymentMethod(method.id)}
+                >
+                  Eliminar
+                </Button>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const SettingsView = () => {
+    const [userData, setUserData] = useState(users);
+    const [editingUser, setEditingUser] = useState(null);
+  
+    const handleEditUser = (id, newData) => {
+      setUserData((prev) =>
+        prev.map((user) => (user.id === id ? { ...user, ...newData } : user))
+      );
+      setEditingUser(null);
+    };
+  
+    return (
+      <div className="space-y-6">
+        <h2 className="text-2xl font-bold">Gestión de Usuarios</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {userData.map((user) => (
+            <Card key={user.id}>
+              <CardHeader>
+                <CardTitle>{user.name}</CardTitle>
+                <CardDescription>Rol: {user.role}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => setEditingUser(user)}>Editar</Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+  
+        {editingUser && (
+          <Dialog open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Editar Usuario</DialogTitle>
+              </DialogHeader>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target);
+                  const name = formData.get("name");
+                  const role = formData.get("role");
+                  handleEditUser(editingUser.id, { name, role });
+                }}
+              >
+                <div className="space-y-4">
+                  <input
+                    name="name"
+                    defaultValue={editingUser.name}
+                    className="border p-2 w-full"
+                    placeholder="Nombre"
+                  />
+                  <input
+                    name="role"
+                    defaultValue={editingUser.role}
+                    className="border p-2 w-full"
+                    placeholder="Rol"
+                  />
+                </div>
+                <div className="mt-4">
+                  <Button type="submit">Guardar</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+    );
+  };
 
     const AdminDashboard = () => {
         const [currentView, setCurrentView] = useState('dashboard');
