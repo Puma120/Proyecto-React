@@ -1,55 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from '@/components/ui/badge';
+import { Salad } from "lucide-react";
+import { obtainMenu, obtainTables, obtainCategories } from '../../services/client';
+import { useNavigate } from 'react-router-dom';
 
-const menuCategories = [
-  { id: 1, name: 'Entradas' },
-  { id: 2, name: 'Platos Fuertes' },
-  { id: 3, name: 'Postres' },
-  { id: 4, name: 'Bebidas' }
-];
-
-const menuItems = [
-    { id: 1, category: 1, name: 'Nachos', description: 'Nachos con queso y jalapeños', price: 120, available: true, image: '/api/placeholder/150/100' },
-    { id: 5, category: 1, name: 'Guacamole', description: 'Guacamole fresco con totopos', price: 80, available: true, image: '/api/placeholder/150/100' },
-    { id: 6, category: 1, name: 'Alitas', description: 'Alitas con salsa BBQ', price: 150, available: true, image: '/api/placeholder/150/100' },
-    { id: 7, category: 1, name: 'Tacos Dorados', description: 'Tacos rellenos de papa', price: 100, available: false, image: '/api/placeholder/150/100' },
-    
-    { id: 2, category: 2, name: 'Filete de Salmón', description: 'Salmón a la parrilla con verduras', price: 250, available: true, image: '/api/placeholder/150/100' },
-    { id: 8, category: 2, name: 'Pollo al Horno', description: 'Pollo marinado con hierbas', price: 180, available: true, image: '/api/placeholder/150/100' },
-    { id: 9, category: 2, name: 'Costillas BBQ', description: 'Costillas con salsa de la casa', price: 220, available: true, image: '/api/placeholder/150/100' },
-    { id: 10, category: 2, name: 'Ravioles', description: 'Ravioles rellenos de espinaca', price: 200, available: true, image: '/api/placeholder/150/100' },
-    
-    { id: 3, category: 3, name: 'Pastel de Chocolate', description: 'Pastel de chocolate con helado', price: 90, available: true, image: '/api/placeholder/150/100' },
-    { id: 11, category: 3, name: 'Tarta de Manzana', description: 'Tarta con manzanas caramelizadas', price: 85, available: true, image: '/api/placeholder/150/100' },
-    { id: 12, category: 3, name: 'Flan Casero', description: 'Flan de vainilla', price: 70, available: true, image: '/api/placeholder/150/100' },
-    { id: 13, category: 3, name: 'Cheesecake', description: 'Pay de queso con fresas', price: 100, available: false, image: '/api/placeholder/150/100' },
-    
-    { id: 4, category: 4, name: 'Mojito', description: 'Mojito clásico', price: 80, available: false, image: '/api/placeholder/150/100' },
-    { id: 14, category: 4, name: 'Limonada', description: 'Limonada natural', price: 50, available: true, image: '/api/placeholder/150/100' },
-    { id: 15, category: 4, name: 'Cerveza Artesanal', description: 'Cerveza de la región', price: 70, available: true, image: '/api/placeholder/150/100' },
-    { id: 16, category: 4, name: 'Café Americano', description: 'Café orgánico', price: 40, available: true, image: '/api/placeholder/150/100' }
-];
-  
-const tables = [
-    { id: 1, number: 1, status: 'available' },
-    { id: 2, number: 2, status: 'occupied' },
-    { id: 3, number: 3, status: 'available' },
-    { id: 4, number: 4, status: 'occupied' },
-    { id: 5, number: 5, status: 'available' },
-    { id: 6, number: 6, status: 'occupied' },
-    { id: 7, number: 7, status: 'available' },
-    { id: 8, number: 8, status: 'occupied' },
-    { id: 9, number: 9, status: 'available' },
-    { id: 10, number: 10, status: 'available' }
-];
-  
 
 const Client = () => {
   const [selectedCategory, setSelectedCategory] = useState(1);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [menuItems, setMenuItems] = useState([]);
+  const [menuCategories, setMenuCategories] = useState([]);
+  const [tables, setTables] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      setLoading(true);
+      try {
+        const result = await obtainMenu(); // Obtienes { menu: [...], error: null }
+        const categories = await obtainCategories(); // Obtienes { categories: [...], error: null }
+        const tables = await obtainTables(); // Obtienes { tables: [...], error: null }
+        if (result.menu && categories.categories && tables.tables) {
+          setMenuItems(result.menu); // Asignamos el array dentro de la propiedad 'menu'
+          setMenuCategories(categories.categories); // Asignamos el array dentro de la propiedad 'categories'
+          setTables(tables.tables); // Asignamos el array dentro de la propiedad 'tables'
+          console.log('Menu cargado:', result.menu);
+
+          // Establecer la categoría seleccionada como la primera categoría si no está seleccionada aún
+          if (!selectedCategory && categories.categories.length > 0) {
+            const numericCategory = Number(categories.categories[0].id);  // Convertir a número
+            setSelectedCategory(numericCategory);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading menu:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMenu();
+  }, [selectedCategory]);
+
+
+  const handleLogOut = () => {
+    navigate('/');
+  };
 
   const addToCart = (item) => {
     setCart([...cart, item]);
@@ -67,9 +68,9 @@ const Client = () => {
     <div className="bg-gray-100 min-h-screen p-4 relative">
       {/* Carrito como ícono en esquina superior derecha */}
       <div className="fixed top-4 right-4">
-        <Button 
-          variant="outline" 
-          size="icon" 
+        <Button
+          variant="outline"
+          size="icon"
           onClick={() => setIsCartOpen(!isCartOpen)}
           className="relative"
         >
@@ -82,20 +83,33 @@ const Client = () => {
         </Button>
       </div>
 
-      <Card className="max-w-4xl mx-auto">
+      <div className="fixed top-4 left-4">
+        <Salad className="w-12 h-12 bg-[#FFD237] text-black p-2 rounded cursor-pointer" onClick={handleLogOut} />
+      </div>
+
+      <Card className="max-w-4xl mx-auto h-[750px]">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
             DineSpot Menu
           </CardTitle>
+          <h4 className="text-center text-gray-600"> ¡Bienvenido! ¿Qué deseas ordenar hoy? </h4>
         </CardHeader>
         <CardContent>
           {/* Categorías de Menú */}
           <div className="flex space-x-2 mb-4 overflow-x-auto">
             {menuCategories.map(category => (
-              <Button 
-                key={category.id} 
-                variant={selectedCategory === category.id ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory(category.id)}
+              <Button
+                key={category.id}
+                variant="outline"
+                className={
+                  selectedCategory === Number(category.id)  // Convertir category.id a número para la comparación
+                    ? 'bg-yellow-400 text-black hover:bg-yellow-400'
+                    : 'border-black text-black hover:bg-gray-100'
+                }
+                onClick={() => {
+                  const numericCategory = Number(category.id);  // Asegurarse de que sea un número
+                  setSelectedCategory(numericCategory);
+                }}
               >
                 {category.name}
               </Button>
@@ -104,71 +118,83 @@ const Client = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Lista de Productos */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold">
-                {menuCategories.find(c => c.id === selectedCategory).name}
-              </h2>
-              {menuItems
-                .filter(item => item.category === selectedCategory)
-                .map(item => (
-                  <Card key={item.id} className="hover:bg-gray-50">
-                    <CardContent className="p-4 flex items-center">
-                      {/* Imagen del platillo */}
-                      <div className="mr-4">
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className="w-24 h-20 object-cover rounded"
-                        />
-                      </div>
-                      <div className="flex-grow">
-                        <div className="flex items-center">
-                          <h3 className="font-bold mr-2">{item.name}</h3>
-                          {!item.available && (
-                            <Badge variant="destructive">Agotado</Badge>
-                          )}
-                        </div>
-                        <p className="text-gray-600 text-sm">
-                          {item.description}
-                        </p>
-                        <p className="font-semibold text-green-600">
-                          ${item.price.toFixed(2)}
-                        </p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        disabled={!item.available}
-                        onClick={() => addToCart(item)}
-                        className="ml-4"
-                      >
-                        Agregar
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
+            <ScrollArea className="h-[96%]">
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold">
+                  {menuCategories.length > 0 && selectedCategory
+                    ? menuCategories.find(c => Number(c.id) === Number(selectedCategory))?.name
+                    : 'Cargando categorías...'}
+                </h2>
+                {loading ? (
+                  <div className="flex justify-center items-center space-x-2">
+                    <svg className="w-10 h-10 border-4 border-t-4 border-yellow-400 border-solid rounded-full animate-spin duration-1000"></svg>
+                    <span className="text-gray-600">Cargando...</span>
+                  </div>
+                ) : (
+                  menuItems.length > 0 && menuItems
+                    .filter(item => item.category === selectedCategory)
+                    .map(item => (
+                      <Card key={item.id} className="hover:bg-gray-50">
+                        <CardContent className="p-4 flex items-center">
+                          {/* Imagen del platillo */}
+                          <div className="mr-4">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-24 h-20 object-cover rounded"
+                            />
+                          </div>
+                          <div className="flex-grow">
+                            <div className="flex items-center">
+                              <h3 className="font-bold mr-2">{item.name}</h3>
+                              {!item.available && (
+                                <Badge variant="destructive">Agotado</Badge>
+                              )}
+                            </div>
+                            <p className="text-gray-600 text-sm">
+                              {item.description}
+                            </p>
+                            <p className="font-semibold text-green-600">
+                              ${item.price.toFixed(2)}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={!item.available}
+                            onClick={() => addToCart(item)}
+                            className="ml-4"
+                          >
+                            Agregar
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))
+                )}
+              </div>
+            </ScrollArea>
+
 
             {/* Mesas del Restaurante */}
             <div>
               <h2 className="text-xl font-semibold mb-4">Estado de Mesas</h2>
               <div className="grid grid-cols-3 gap-4">
                 {tables.map(table => (
-                  <div 
-                    key={table.id} 
+                  <div
+                    key={table.id}
                     className={`p-4 rounded-lg text-center 
-                      ${table.status === 'available' 
-                        ? 'bg-green-100 border-green-300' 
+                      ${table.status === true
+                        ? 'bg-green-100 border-green-300'
                         : 'bg-red-100 border-red-300'
                       } border`}
                   >
                     <div className="text-lg font-bold">Mesa {table.number}</div>
                     <div className={`mt-2 
-                      ${table.status === 'available' 
-                        ? 'text-green-700' 
+                      ${table.status === true
+                        ? 'text-green-700'
                         : 'text-red-700'
                       }`}>
-                      {table.status === 'available' ? '🟢 Libre' : '🔴 Ocupada'}
+                      {table.status === true ? '🟢 Libre' : '🔴 Ocupada'}
                     </div>
                   </div>
                 ))}
@@ -187,14 +213,14 @@ const Client = () => {
           ) : (
             <div className="space-y-2">
               {cart.map(item => (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   className="flex justify-between items-center bg-gray-100 p-2 rounded"
                 >
                   <div className="flex items-center">
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
+                    <img
+                      src={item.image}
+                      alt={item.name}
                       className="w-16 h-12 object-cover rounded mr-2"
                     />
                     <div>
@@ -204,8 +230,8 @@ const Client = () => {
                       </span>
                     </div>
                   </div>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="destructive"
                     onClick={() => removeFromCart(item)}
                   >
