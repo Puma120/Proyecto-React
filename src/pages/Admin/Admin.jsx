@@ -24,6 +24,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+useEffect(() => {
+  const fetchItems = async () => {
+    const querySnapshot = await getDocs(collection(db, "menuItems"));
+    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setItems(data);
+  };
+  fetchItems();
+}, []);
+
 // Datos Mock
 const menuCategories = [
     { id: 1, name: 'Entradas' },
