@@ -46,5 +46,15 @@ const obtainPaymentMethods = async () => {
     }
 }
 
+const createOrder = async (order) => {
+    try {
+        const orderCollection = collection(db, 'orders');
+        const orderRef = await addDoc(orderCollection, order);
+        return { id: orderRef.id, error: null };
+    } catch (error) {
+        return { id: null, error: error.message };
+    }
+}
 
-export { obtainMenu, obtainTables, obtainCategories, obtainPaymentMethods };
+
+export { obtainMenu, obtainTables, obtainCategories, obtainPaymentMethods, createOrder };
