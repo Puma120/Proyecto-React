@@ -60,10 +60,6 @@ const users = [
   { id: 3, name: 'Ana', role: 'Cocina' }
 ];
 
-// const pastOrders = [
-//   { id: 1, name: 'Pedido 1', total: 350 },
-//   { id: 2, name: 'Pedido 2', total: 200 }
-// ];
 
 const paymentMethods = [
   { id: 1, name: 'Efectivo' },
@@ -99,7 +95,7 @@ const DashboardView = () => (
           <CardDescription>Estado actual del restaurante</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">8/15</p>
+          <p className="text-3xl font-bold">1/8</p>
         </CardContent>
       </Card>
     </div>
