@@ -35,4 +35,16 @@ const obtainCategories = async () => {
     }
 }
 
-export { obtainMenu, obtainTables, obtainCategories };
+const obtainPaymentMethods = async () => {
+    try {
+        const paymentMethodsCollection = collection(db, 'paymentMethods'); // Nombre de la colección en Firestore
+        const paymentMethodsSnapshot = await getDocs(paymentMethodsCollection);
+        const paymentMethodsList = paymentMethodsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return { paymentMethods: paymentMethodsList, error: null };
+    } catch (error) {
+        return { paymentMethods: null, error: error.message };
+    }
+}
+
+
+export { obtainMenu, obtainTables, obtainCategories, obtainPaymentMethods };

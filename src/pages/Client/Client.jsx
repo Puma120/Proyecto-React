@@ -4,9 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from '@/components/ui/badge';
 import { Salad } from "lucide-react";
-import { obtainMenu, obtainTables, obtainCategories } from '../../services/client';
+import { obtainMenu, obtainTables, obtainCategories, obtainPaymentMethods } from '../../services/client';
 import { useNavigate } from 'react-router-dom';
-
 
 const Client = () => {
   const [selectedCategory, setSelectedCategory] = useState(1);
@@ -17,23 +16,27 @@ const Client = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false); // Estado para abrir el modal de pago
+  const [selectedTable, setSelectedTable] = useState(null); // Mesa seleccionada
+  const [paymentMethods, setPaymentMethods] = useState([]); // Métodos de pago desde la base de datos
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null); // Método de pago seleccionado
+  const [splitCount, setSplitCount] = useState(1); // Número de divisiones de la cuenta (por defecto 1)
+
 
   useEffect(() => {
     const fetchMenu = async () => {
       setLoading(true);
       try {
-        const result = await obtainMenu(); // Obtienes { menu: [...], error: null }
-        const categories = await obtainCategories(); // Obtienes { categories: [...], error: null }
-        const tables = await obtainTables(); // Obtienes { tables: [...], error: null }
+        const result = await obtainMenu();
+        const categories = await obtainCategories();
+        const tables = await obtainTables();
         if (result.menu && categories.categories && tables.tables) {
-          setMenuItems(result.menu); // Asignamos el array dentro de la propiedad 'menu'
-          setMenuCategories(categories.categories); // Asignamos el array dentro de la propiedad 'categories'
-          setTables(tables.tables); // Asignamos el array dentro de la propiedad 'tables'
-          console.log('Menu cargado:', result.menu);
+          setMenuItems(result.menu);
+          setMenuCategories(categories.categories);
+          setTables(tables.tables);
 
-          // Establecer la categoría seleccionada como la primera categoría si no está seleccionada aún
           if (!selectedCategory && categories.categories.length > 0) {
-            const numericCategory = Number(categories.categories[0].id);  // Convertir a número
+            const numericCategory = Number(categories.categories[0].id);
             setSelectedCategory(numericCategory);
           }
         }
@@ -47,6 +50,15 @@ const Client = () => {
     fetchMenu();
   }, [selectedCategory]);
 
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      // Ejemplo de respuesta: [{ id: 1, name: "Tarjeta de Crédito" }, { id: 2, name: "Efectivo" }]
+      const methods = await obtainPaymentMethods();
+      setPaymentMethods(methods || []);
+    };
+  
+    fetchPaymentMethods();
+  }, []);
 
   const handleLogOut = () => {
     navigate('/');
@@ -102,14 +114,11 @@ const Client = () => {
                 key={category.id}
                 variant="outline"
                 className={
-                  selectedCategory === Number(category.id)  // Convertir category.id a número para la comparación
+                  selectedCategory === Number(category.id)
                     ? 'bg-yellow-400 text-black hover:bg-yellow-400'
                     : 'border-black text-black hover:bg-gray-100'
                 }
-                onClick={() => {
-                  const numericCategory = Number(category.id);  // Asegurarse de que sea un número
-                  setSelectedCategory(numericCategory);
-                }}
+                onClick={() => setSelectedCategory(Number(category.id))}
               >
                 {category.name}
               </Button>
@@ -122,7 +131,7 @@ const Client = () => {
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">
                   {menuCategories.length > 0 && selectedCategory
-                    ? menuCategories.find(c => Number(c.id) === Number(selectedCategory))?.name
+                    ? menuCategories.find(c => Number(c.id) === selectedCategory)?.name
                     : 'Cargando categorías...'}
                 </h2>
                 {loading ? (
@@ -131,12 +140,10 @@ const Client = () => {
                     <span className="text-gray-600">Cargando...</span>
                   </div>
                 ) : (
-                  menuItems.length > 0 && menuItems
-                    .filter(item => item.category === selectedCategory)
+                  menuItems.filter(item => item.category === selectedCategory)
                     .map(item => (
                       <Card key={item.id} className="hover:bg-gray-50">
                         <CardContent className="p-4 flex items-center">
-                          {/* Imagen del platillo */}
                           <div className="mr-4">
                             <img
                               src={item.image}
@@ -151,12 +158,8 @@ const Client = () => {
                                 <Badge variant="destructive">Agotado</Badge>
                               )}
                             </div>
-                            <p className="text-gray-600 text-sm">
-                              {item.description}
-                            </p>
-                            <p className="font-semibold text-green-600">
-                              ${item.price.toFixed(2)}
-                            </p>
+                            <p className="text-gray-600 text-sm">{item.description}</p>
+                            <p className="font-semibold text-green-600">${item.price.toFixed(2)}</p>
                           </div>
                           <Button
                             size="sm"
@@ -174,7 +177,6 @@ const Client = () => {
               </div>
             </ScrollArea>
 
-
             {/* Mesas del Restaurante */}
             <div>
               <h2 className="text-xl font-semibold mb-4">Estado de Mesas</h2>
@@ -183,18 +185,14 @@ const Client = () => {
                   <div
                     key={table.id}
                     className={`p-4 rounded-lg text-center 
-                      ${table.status === true
+                      ${table.status
                         ? 'bg-green-100 border-green-300'
                         : 'bg-red-100 border-red-300'
                       } border`}
                   >
                     <div className="text-lg font-bold">Mesa {table.number}</div>
-                    <div className={`mt-2 
-                      ${table.status === true
-                        ? 'text-green-700'
-                        : 'text-red-700'
-                      }`}>
-                      {table.status === true ? '🟢 Libre' : '🔴 Ocupada'}
+                    <div className={`mt-2 ${table.status ? 'text-green-700' : 'text-red-700'}`}>
+                      {table.status ? '🟢 Libre' : '🔴 Ocupada'}
                     </div>
                   </div>
                 ))}
@@ -203,57 +201,107 @@ const Client = () => {
           </div>
         </CardContent>
       </Card>
+    {/* Modal de Carrito */}
+    {isCartOpen && (
+      <div className="fixed top-20 right-4 w-80 bg-white shadow-lg rounded-lg p-4">
+        {/* Lógica y contenido del carrito */}
+        <Button
+          className="w-full mt-4"
+          onClick={() => setIsPaymentOpen(true)} // Abrir modal de pago
+        >
+          Continuar al Pago
+        </Button>
+      </div>
+    )}
 
-      {/* Modal de Carrito (si está abierto) */}
-      {isCartOpen && (
-        <div className="fixed top-20 right-4 w-80 bg-white shadow-lg rounded-lg p-4">
-          <h2 className="text-xl font-semibold mb-4">Carrito de Compras</h2>
-          {cart.length === 0 ? (
-            <p className="text-gray-500 text-center">Tu carrito está vacío</p>
-          ) : (
-            <div className="space-y-2">
-              {cart.map(item => (
-                <div
-                  key={item.id}
-                  className="flex justify-between items-center bg-gray-100 p-2 rounded"
-                >
-                  <div className="flex items-center">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-16 h-12 object-cover rounded mr-2"
-                    />
-                    <div>
-                      <span className="font-semibold">{item.name}</span>
-                      <span className="text-gray-600 ml-2">
-                        ${item.price.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => removeFromCart(item)}
-                  >
-                    Eliminar
-                  </Button>
-                </div>
+    {/* Modal para selección de mesa, método de pago y división */}
+    {isPaymentOpen && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+          <h2 className="text-xl font-bold mb-4">Completar Pago</h2>
+
+          {/* Selección de mesa */}
+          <div className="mb-4">
+            <label className="block mb-2">Selecciona una mesa:</label>
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={selectedTable || ''}
+              onChange={(e) => setSelectedTable(e.target.value)}
+            >
+              <option value="" disabled>Seleccionar mesa</option>
+              {tables.filter(table => table.status).map(table => (
+                <option key={table.id} value={table.id}>
+                  Mesa {table.number}
+                </option>
               ))}
-              <div className="border-t pt-2">
-                <div className="flex justify-between font-bold">
-                  <span>Total:</span>
-                  <span>${calculateTotal().toFixed(2)}</span>
-                </div>
-              </div>
-              <Button className="w-full mt-4">
-                Continuar al Pago
-              </Button>
-            </div>
-          )}
+            </select>
+          </div>
+
+          {/* Selección de método de pago */}
+          <div className="mb-4">
+            <label className="block mb-2">Método de Pago:</label>
+            <select
+              className="w-full border rounded px-3 py-2"
+              value={selectedPaymentMethod || ''}
+              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+            >
+              <option value="" disabled>Seleccionar método de pago</option>
+              {paymentMethods.map(method => (
+                <option key={method.id} value={method.id}>
+                  {method.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* División de cuenta */}
+          <div className="mb-4">
+            <label className="block mb-2">Dividir cuenta entre:</label>
+            <input
+              type="number"
+              className="w-full border rounded px-3 py-2"
+              min="1"
+              max="5"
+              value={splitCount}
+              onChange={(e) => setSplitCount(Math.max(1, Math.min(5, Number(e.target.value))))}
+            />
+          </div>
+
+          {/* Total dividido */}
+          <div className="mb-4 text-center">
+            <span className="font-bold">Total por persona:</span> ${ (calculateTotal() / splitCount).toFixed(2) }
+          </div>
+
+          {/* Botones */}
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => setIsPaymentOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                if (!selectedTable || !selectedPaymentMethod) {
+                  alert("Selecciona una mesa y un método de pago.");
+                  return;
+                }
+                console.log({
+                  table: selectedTable,
+                  paymentMethod: selectedPaymentMethod,
+                  splitCount,
+                  total: calculateTotal()
+                });
+                setIsPaymentOpen(false);
+                alert("¡Pago completado!");
+              }}
+            >
+              Confirmar Pago
+            </Button>
+          </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 };
 
 export default Client;
